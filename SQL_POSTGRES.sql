@@ -86,3 +86,17 @@ select bpcharcmp('Oracion', 'Oracion'); /*0 igual true, -1 igual a false*/
 /*concatenar varias columnas*/
 select concat(a.nombre ,' ', a.apellidopaterno,' ', a.apellidomaterno) as nombre
 	from alumnos a;
+/*ver en que posicion esta la cadena*/
+select position('camilo' in 'juan camilo');
+/*devolver una cadena con comilllas*/
+select quote_ident('Juan');
+/*devolver con comilla simplre*/
+select quote_literal(00000);
+/*partir la cadena con - y devolver el 1 elemento*/
+select split_part('2024-01-12', '-', 1);
+/*example*/
+select 
+	a.nombre || 'nacio en: ' || 
+	split_part(a.fechanacimiento::varchar, '-', 1) ||
+	' Buena esa chav@' as mensaje
+	from alumnos a;
