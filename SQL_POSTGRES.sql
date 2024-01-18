@@ -259,3 +259,77 @@ create or replace function creartabla() returns text as $$
 		return 'creando tabla...';
 	end;
 $$ language plpgsql;
+
+/* mas ejemplos */
+
+/* funcion que saca el iva de un productoid
+	el $1 significa el primer argumento que llega de la funcion
+*/
+create or replace function total_a_pagar(integer) returns numeric as $$
+	declare
+		precio_producto numeric := (select p.precio from productos p where p.productoid = $1);
+																		
+		iva_producto numeric := precio_producto*0.16;
+		
+		total numeric := iva_producto + precio_producto;
+		begin
+			return total;
+		end;
+$$ language plpgsql;
+
+/* funcion que retorna multiples registros */
+create or replace function datos_producto(integer) returns varchar as $$
+	declare
+		/*
+			marcador de tipo record
+			Sirve para retornar un conjunto de datos 'registros'
+		*/
+		r record;
+		begin
+		
+			select * into r from productos p
+				where p.productoid = $1;
+				
+			return r.descripcion;
+		end;
+$$ language plpgsql;
+
+/* Funcion que retorna varias filas */
+create or replace function devuelve_filas() returns setof record as $$
+	declare
+		/*
+			funcion que devuelve en si' varias filas
+		*/
+		rec record;
+		begin
+		
+			/*Ciclo*/
+			for rec in execute 'select * from productos' loop
+				return next rec;
+			end loop;
+			return;
+			
+		end;
+$$ language plpgsql;
+/* invocar a la funcion */
+select * from devuelve_filas() as (productoid integer , descipcion varchar, precio double precision);
+
+/* la misma funcion de arriba pero con argumentos */
+create or replace function devuelve_filas(INTEGER) returns setof record as $$
+	declare
+		/*
+			funcion que devuelve en si' varias filas
+		*/
+		rec record;
+		begin
+		
+			/*Ciclo*/
+			for rec in select * from productos p where p.productoid = $1 loop
+				return next rec;
+			end loop;
+			return; /*indica el fin de la funcion*/
+			
+		end;
+$$ language plpgsql;
+/* invocar a la funcion */
+select * from devuelve_filas(100) as (productoid integer , descipcion varchar, precio double precision);
