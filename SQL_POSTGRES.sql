@@ -315,6 +315,11 @@ $$ language plpgsql;
 select * from devuelve_filas() as (productoid integer , descipcion varchar, precio double precision);
 
 /* la misma funcion de arriba pero con argumentos */
+/*La palabra clave "setof" en este fragmento
+de código de PostgreSQL indica que la función
+devuelve un conjunto de registros.
+En términos más simples, la función devuelve
+una serie de registros en lugar de un solo valor.*/
 create or replace function devuelve_filas(INTEGER) returns setof record as $$
 	declare
 		/*
@@ -333,3 +338,85 @@ create or replace function devuelve_filas(INTEGER) returns setof record as $$
 $$ language plpgsql;
 /* invocar a la funcion */
 select * from devuelve_filas(100) as (productoid integer , descipcion varchar, precio double precision);
+
+/* Funcion que compara el tamanio de dos palabras estructura if else */
+create or replace function longitud_mayor_palabra(palabra1 text, palabra2 text) returns record as $$
+	declare
+		rec record;
+		begin
+		
+			if length(palabra1) < length(palabra2) then
+				select true, palabra1 || ' - ' ||  palabra2, 'palabra1 tiene menor longitud que la palabra2.'
+					into rec;
+			else
+				select false, palabra2 || ' - ' || palabra1, 'palabra2 tiene mayor longitud que la palabra1.'
+					into rec;
+			end if;
+			
+			return rec; 
+		end;
+$$ language plpgsql;
+select longitud_mayor_palabra('sushi', 'pozole');
+
+/* funcion que lee un csv y pega los datos en una tabla temporal devuelve un mensaje 
+	los parametros 'out resultado text' sirven para saber el resultado de ejecucion
+	si para saber si la ejecucion fue exitosa
+	no se necesita declarar nada para esta variable en la seccion de declare
+*/
+create or replace function copiar_archivo(out resultado text) returns text as $$
+	declare
+	
+		begin
+		
+			if exists(select tablename from pg_tables where tablename='tmp_productos') then
+				drop table tmp_productos;
+			end if;
+			raise notice 'se elimino la tabla tmp_productos';
+			
+			create table tmp_productos(
+				productoid integer,
+				descripcion varchar(100),
+				precio double precision
+			);
+			
+			copy tmp_productos from 'D:\programacion\postgresql_ayudas\postgresql-ayudas\datosproductos.csv' delimiter ',' csv header;
+			
+			resultado:='Copiado realizado con exito.';
+	
+			return;
+		end;
+$$ language plpgsql;
+select copiar_archivo();
+select * from tmp_productos;
+
+/* la misma funcion de arriba solo que ahora si inserta nuevos productos a la tabla productos*/
+create or replace function copiar_archivo(out resultado text) returns text as $$
+	declare
+	
+		begin
+		
+			if exists(select tablename from pg_tables where tablename='tmp_productos') then
+				drop table tmp_productos;
+			end if;
+			raise notice 'se elimino la tabla tmp_productos';
+			
+			create table tmp_productos(
+				productoid integer,
+				descripcion varchar(100),
+				precio double precision
+			);
+			
+			copy tmp_productos from 'D:\programacion\postgresql_ayudas\postgresql-ayudas\datosproductos.csv' delimiter ',' csv header;
+			
+			insert into productos select * from tmp_productos;
+			
+			raise notice 'Insertando productos nuevos a la tabla productos...';
+			
+			resultado:='Copiado realizado con exito.';
+	
+			return;
+		end;
+$$ language plpgsql;
+select copiar_archivo();
+select * from tmp_productos;
+select * from productos;
