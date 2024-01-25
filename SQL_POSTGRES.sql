@@ -420,3 +420,43 @@ $$ language plpgsql;
 select copiar_archivo();
 select * from tmp_productos;
 select * from productos;
+
+-- drop function eliminar producto
+create or replace function eliminar_producto(integer, out mensaje text) returns text as $$
+	declare
+		begin
+			delete from productos p where p.productoid = $1;
+			raise notice 'delete row with id= % ... ' , $1;
+			
+			mensaje:='delete row id = ' || $1 || ' ...';
+			return;
+		end;
+$$ language plpgsql;
+select * from productos;
+select eliminar_producto(9);
+
+-- funcion que actualiza precio y devuelve dato
+create or replace function actualizar_precio(integer, double precision) returns text as $$
+	declare
+		cod_prod integer;
+		nombre_producto varchar;
+		begin
+			update productos p set precio = $2 where p.productoid = $1;
+			-- para agregar dato a una variable con un select utilizamos into
+			select p.descripcion into nombre_producto from productos p where p.productoid = $1;
+			return nombre_producto;
+		end;
+$$ language plpgsql;
+select actualizar_precio(12, 100.15);
+select * from productos;
+
+-- funcion que crea un backup de una tabla
+create or replace function backup() returns boolean as $$
+	declare
+		begin
+			copy (select * from productos) to 'D:\programacion\postgresql_ayudas\postgresql-ayudas\respaldo_productos.csv' delimiter ',' csv header;
+			return true;
+		end;
+$$ language plpgsql;
+select backup();
+
