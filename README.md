@@ -1,10 +1,10 @@
 ## Ayudas para construir funciones en PLpgSQL
 
-Este repositorio alberga codigo `PLpgSQL` de PostGreSQL, por lo que podras ver ejemplos de construccion de funciones.
+Este repositorio alberga codigo `PLpgSQL` de PostGreSQL, por lo que podrás ver ejemplos de construcción de funciones.
 
-:+1: COn el objetivo de recordar la sintaxis - ahora es tiempo de trabajar, las ayudas estan en el archivo SQL_POSTGRES.sql :page_facing_up:! :shipit:
+:+1: Con el objetivo de recordar la sintaxis - ahora es tiempo de trabajar, las ayudas están en el archivo SQL_POSTGRES.sql :page_facing_up:! :shipit:
 
-Ejemplo de codigo:
+Ejemplo de código:
 
 ``` PLpgSQL
 -- funcion que crea un backup de una tabla
@@ -18,5 +18,4 @@ $$ language plpgsql;
 select backup();
 ```
 
-
-[link](https://www.todopostgresql.com/wp-content/uploads/2018/09/cursoPlpgsql.png)
+![link](https://www.todopostgresql.com/wp-content/uploads/2018/09/cursoPlpgsql.png)
