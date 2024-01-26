@@ -460,3 +460,62 @@ create or replace function backup() returns boolean as $$
 $$ language plpgsql;
 select backup();
 
+
+-- funcion que incrementa los precios de los productos
+create or replace function incrementar_precio() returns void as $$
+	declare
+		begin
+			update productos set precio = (precio * 0.10) + precio;
+			raise notice 'Se actualizaron los precios de productos.';
+			return;
+		end;
+$$ language plpgsql;
+
+select incrementar_precio();
+select * from productos;
+
+-- funcion que visualizamos un producto con con datos compuestos
+create or replace function see_prod(integer) returns productos as $$
+	declare
+		prod productos; -- este es un dato compuesto de tipo producto
+		begin
+			select * from productos where productoid = $1 into prod;
+			return prod;
+		end;
+$$ language plpgsql;
+select see_prod(100);
+select * from productos;
+
+-- funcion que retorna datos (muchos) compuestos
+create or replace function see_all_prod() returns setof productos as $$
+	declare
+		resultado record;
+		begin
+		
+			for resultado in select * from productos loop
+				return next resultado;
+			end loop;
+			
+			return;
+		end;
+$$ language plpgsql;
+select see_all_prod();
+
+-- funcion que retorna dato pero lanza una excepcion
+create or replace function see_prod2(integer) returns varchar as $$
+	declare
+		prod varchar;
+		begin
+		
+			select descripcion into prod from productos where productoid = $1;
+			
+			if not found then
+				raise exception 'El producto % NO ha sido encontrado', $1; 
+			end if;
+			
+			return prod;
+		end;
+$$ language plpgsql;
+select see_prod2(1);
+
+-- seccion nueva para el sql postgresql
