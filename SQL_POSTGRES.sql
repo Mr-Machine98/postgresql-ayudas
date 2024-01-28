@@ -519,3 +519,61 @@ $$ language plpgsql;
 select see_prod2(1);
 
 -- seccion nueva para el sql postgresql
+/*
+Seleccione de la tabla alumnos
+la columna carrera, cuente los alumnos en la otra columna
+agrupe por carreara para que se pueda contar
+de ese resultado excluya las carreras Bionica y artes
+*/
+select
+	a.carrera,
+	count(*) as cuantos_alumnos
+		from alumnos a
+		group by a.carrera
+			having 
+				a.carrera <> 'Bionica'
+					and
+				a.carrera <> 'Artes';
+
+/* seleccione la tabla alumnos agrupe sus datos por carrera y mire 
+	de esas carreras el mayor promedio pero solamente de Fisico Matematico
+*/
+select a.carrera, max(a.promedio) as mayor_promedio
+	from alumnos a
+		group by a.carrera
+		having a.carrera = 'Fisico Matematico';
+		
+/*  
+	Mas ejemplos
+*/
+select 
+	c.nombre, 
+	max(c.temperatura_maxima) as temperatura_max 
+		from ciudades c
+		group by c.nombre
+		having max(c.temperatura_maxima) <= 30;
+select 
+	c.nombre, 
+	max(c.temperatura_maxima) as temperatura_max 
+		from ciudades c
+		where c.nombre like '%C%'
+		group by c.nombre
+		having max(c.temperatura_maxima) <= 30;
+		
+		
+/* 
+
+	`VISTAS` se crean a partir de una consulta
+	por lo cual no esta almacenada fisicamente.
+	
+	
+	ejemplo
+
+ */
+ create view consulta_libros_editorial as select * 
+	from libros l
+		inner join editorial e
+			on l.codigoeditorial = e.codigo_editorial;
+
+-- delete view
+drop view consulta_libros_editorial
