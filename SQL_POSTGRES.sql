@@ -577,3 +577,127 @@ select
 
 -- delete view
 drop view consulta_libros_editorial
+
+
+/*
+	trigger's 
+*/
+
+/*
+	Trigger que cuando detecte un update en la tabla
+	empleados, antes, inserte el registro que se actualizo se
+	inserte en la tabla respalod_empleados
+	
+	
+	En el contexto de un trigger BEFORE UPDATE, 
+	la variable old representa los valores de las c
+	olumnas antes de que se realice la actualización. 
+	Entonces, old.idempleado, old.nombre y old.puestoid 
+	son las columnas específicas de la fila antes de que se 
+	realice la actualización en la tabla empleados.
+*/
+create or replace function fun_accion() returns trigger as $$
+	declare
+	begin
+		insert into respalod_empleados 
+			values(old.idempleado, old.nombre, old.puestoid);
+			
+		return new;
+	end;
+$$ language plpgsql;
+
+create trigger update_empleados before update on empleados
+	for each row execute procedure fun_accion();
+
+/*
+	trigger que revisa si una columna cumple con su parametro si no lanza una exception
+*/
+create or replace function fun_password() returns trigger as $$
+	declare
+	begin
+	
+		if length(new.contrasena ) > 8 or new.contrasena is null then
+			raise exception 'La contrasena No debe tener mas de 8 caracteres, ni tampoco con valor null!';
+		end if;
+		
+		if  new.nombre is null then
+			raise exception 'El nombre no debe ser nulo!';
+		end if;
+		
+		if new.usuario is null then
+			raise exception 'El usuario no debe ser nulo!';
+		end if;
+		
+		return new;
+	end;
+$$ language plpgsql;
+-- creacion de trigger
+create trigger trigger_password before insert or update on usuarios
+	for each row execute procedure fun_password();
+
+/*
+	trigger que valida si una fecha ingresada sobrepasa a la actual
+*/
+create or replace function fun_validar_fecha() returns trigger as $$
+	declare
+	begin
+	
+		if (extract(year from new.fecha_alta)) > (extract(year from current_date)) then
+			raise exception 'Error al ingresar fecha alta, es un ano mayor al actual!';
+		end if;
+	
+		return new;
+	end;
+$$ language plpgsql;
+create trigger trigger_clientes before insert or update on clientes
+	for each row execute procedure fun_validar_fecha();
+	
+/*
+	trigger que realiza un log de la tabla clientes1
+	detectando sus movimientos
+*/	
+create or replace function tg_fun_logclientes() returns trigger as $$
+	declare
+	begin
+		if (TG_OP='INSERT' or TG_OP='UPDATE') then
+			insert into log_clientes1 (
+				id_cliente,
+				nombre,
+				direccion,
+				fecha_alta,
+				log_movimiento,
+				log_fecha_movimiento
+			) values (
+				new.id_cliente,
+				new.nombre,
+				new.direccion,
+				new.fecha_alta,
+				TG_OP,
+				current_date
+			);
+			return new;
+		end if;
+		
+		if(TG_OP = 'DELETE') then
+			insert into log_clientes1 (
+				id_cliente,
+				nombre,
+				direccion,
+				fecha_alta,
+				log_movimiento,
+				log_fecha_movimiento
+			) values (
+				old.id_cliente,
+				old.nombre,
+				old.direccion,
+				old.fecha_alta,
+				TG_OP,
+				current_date
+			);
+			return old;
+		end if;
+	end;
+$$ language plpgsql;
+
+create trigger tg_log_cliente after insert or update or delete on clientes1
+	for each row execute procedure tg_fun_logclientes();
